@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block info_content%}
+<div class="row">
+  <div class="col-md-12">
+    <div class="jumbotron">
+      <h1 class="display-4">Hello, world!</h1>
+      <p class="lead">This is a simple interface that aims to show the results of diverse object detectors trained
+        on
+        PASCAL VOC 07+12. The purpose of this project is to concretely compare the results of the Few-shot
+        learning &
+        transfer learning against the results by state-of-the-art detectors.</p>
+      <hr class="my-4">
+      <p>
+        The detectors available are :
+        <ul>
+          <li>FSOD - Feature reweighting</li>
+          <li>Vanilla - MobileNet</li>
+          <li>FSOD - RepMet</li>
+        </ul>
+      </p>
+      <p class="lead">
+        <a class="btn btn-primary btn-lg" href="#" role="button">Go to image detection</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h1>
+      Object categories available with Pascal VOC (07+12)
+    </h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-3">
+    <h4>
+      Person
+    </h4>
+    <ul class="list-group">
+      <li class="list-group-item">Person</li>
+    </ul>
+  </div>
+  <div class="col-md-3">
+    <h4>
+      Animal
+    </h4>
+    <ul class="list-group">
+      <li class="list-group-item">Bird</li>
+      <li class="list-group-item">Cat</li>
+      <li class="list-group-item">Cow</li>
+      <li class="list-group-item">Dog</li>
+      <li class="list-group-item">Horse</li>
+      <li class="list-group-item">Sheep</li>
+    </ul>
+  </div>
+  <div class="col-md-3">
+    <h4>
+      Vehicle
+    </h4>
+    <ul class="list-group">
+      <li class="list-group-item">Aeroplane</li>
+      <li class="list-group-item">Bicycle</li>
+      <li class="list-group-item">Boat</li>
+      <li class="list-group-item">Bus</li>
+      <li class="list-group-item">Car</li>
+      <li class="list-group-item">Motorbike</li>
+      <li class="list-group-item">Train</li>
+    </ul>
+  </div>
+  <div class="col-md-3">
+    <h4>
+      Indoor
+    </h4>
+    <ul class="list-group">
+      <li class="list-group-item">Bottle</li>
+      <li class="list-group-item">Chair</li>
+      <li class="list-group-item">Dining table</li>
+      <li class="list-group-item">Potted plant</li>
+      <li class="list-group-item">Sofa</li>
+      <li class="list-group-item">TV/Monitor</li>
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h1>
+
+    </h1>
+  </div>
+</div>
+{% endblock %}
+
+{% block network_choice %}
+{% endblock %}
+{% block image_field %}
+{% endblock %}
+{% block results_table %}
+{% endblock %}
