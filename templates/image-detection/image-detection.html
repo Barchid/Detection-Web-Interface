@@ -3,9 +3,46 @@
 {% block info_content%}
 {% endblock %}
 
+
 {% block network_choice %}
+<!-- network choice  -->
+<div class="select">
+    <select class="form-control" id="js-select-network">
+        <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
+        <option value="mobilenet">Vanilla - Mobilenet</option>
+        <option value="repmet">Few-shot Learning - Repmet</option>
+    </select>
+</div>
 {% endblock %}
+
+
 {% block image_field %}
+<img style="height: 512px" id="" src="../static/Auderghem.jpg" />
 {% endblock %}
+
+
 {% block results_table %}
+<table class="table" id="js-results-table">
+    <thead>
+        <tr>
+            <th>
+                Features
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                Time
+            </td>
+            <td>
+                3.01s
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+
+    </tfoot>
+</table>
 {% endblock %}
