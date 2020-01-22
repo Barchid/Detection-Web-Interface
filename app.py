@@ -1,5 +1,7 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, jsonify
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def index():
@@ -19,7 +21,7 @@ def webcam_detection():
 
 @app.route('/lol/<name>')
 def lol(name):
-    return name
+    return jsonify({'name': name})
 
 if __name__ == '__main__':
     app.run()
