@@ -20,7 +20,8 @@
         </ul>
       </p>
       <p class="lead">
-        <a class="btn btn-primary btn-lg" href="{{ url_for('image_detection') }}" role="button">Go to image detection</a>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('image_detection') }}" role="button">Go to image
+          detection</a>
       </p>
     </div>
   </div>
@@ -91,6 +92,17 @@
     </h1>
   </div>
 </div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+  integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+  var socket = io({
+    transports: ['websocket']
+  });
+  socket.on('connect', function () {
+    socket.emit('my event', { data: 'I\'m connected!' });
+  });
+</script>
 {% endblock %}
 
 {% block network_choice %}
