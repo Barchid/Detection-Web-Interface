@@ -31,7 +31,16 @@ def webcam_detection():
 
 @socketio.on('detection')
 def detection(data):
-    emit('detected', ['pute', 'tchoin'])
+    emit('detected', [
+        {
+            'xmin': 40,
+            'ymin': 100,
+            'xmax': 120,
+            'ymax': 240,
+            'class': 'Saloperie',
+            'score': 99
+        }
+    ])
 
 
 if __name__ == '__main__':
