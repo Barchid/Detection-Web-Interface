@@ -1,9 +1,8 @@
 from flask import Flask, render_template, url_for, jsonify
 from flask_cors import CORS, cross_origin
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 import eventlet
 
-print('oh')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 CORS(app)
@@ -30,9 +29,10 @@ def webcam_detection():
     return render_template('webcam-detection/webcam-detection.html')
 
 
-@socketio.on('message')
-def handle_message(message):
-    print('received message: ' + message)
+@socketio.on('detection')
+def detection(data):
+    print('received message: ' + str(data))
+    emit('detected', ['pute', 'tchoin'])
 
 
 if __name__ == '__main__':

@@ -6,18 +6,26 @@
 
 {% block network_choice %}
 <!-- network choice  -->
-<div class="select">
-    <select class="form-control" id="js-select-network">
-        <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
-        <option value="mobilenet">Vanilla - Mobilenet</option>
-        <option value="repmet">Few-shot Learning - Repmet</option>
-    </select>
-</div>
+<form id="js-form" onsubmit="startDetection(event)">
+    <div class="form-group">
+        <select class="form-control form-control-lg" id="js-select-network" required>
+            <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
+            <option value="mobilenet">Vanilla - Mobilenet</option>
+            <option value="repmet">Few-shot Learning - Repmet</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <input required type="file" class="form-control-file form-control-lg" id="js-image" accept="image./*"
+            placeholder="Image to detect">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Detection</button>
+</form>
 {% endblock %}
 
 
 {% block image_field %}
-<canvas id="js-image-preview">
+<canvas id="js-canvas" class="border">
 
 </canvas>
 {% endblock %}
@@ -50,10 +58,50 @@
 
 
 <script>
-    const canvas = 
-    function submitDetection() {
+    // Retrieve dynamic HTML elements
+    const canvas = document.getElementById('js-canvas');
+    const fileInput = document.getElementById('js-image');
+    const networkSelect = document.getElementById('js-select-network');
+    const results = document.getElementById('js-results-table');
+    const form = document.getElementById('js-form');
+    const img = new Image(); // to load image from input
+    let imgData = null; // data image (base64)
 
+    // Callback on image input "onchange" event in order to change canvas preview with new uploaded image
+    fileInput.onchange = (e) => {
+        const files = e.target.files;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (evt) => {
+            if (evt.target.readyState == FileReader.DONE) {
+                imgData = evt.target.result; // keep base64 data
+                img.src = evt.target.result;
+                img.onload = () =>  {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                }
+            }
+        }
     }
+
+    // Callback on submit to launch detection from server
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        if(!imgData) return;
+
+        // send to server through websocket
+        socket.emit('detection', {
+            algorithm: networkSelect.options[networkSelect.selectedIndex].value,
+            img: imgData
+        })
+    }
+
+    // Callback when the server answers with the predicted bounding boxes
+    socket.on('detected', (boxes) => {
+        console.log(boxes);
+    })
 </script>
 
 {% endblock %}

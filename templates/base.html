@@ -26,6 +26,17 @@
             padding-top: 75px;
         }
     </style>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+        integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        const socket = io({
+            transports: ['websocket']
+        });
+        socket.on('connect', function () {
+            socket.emit('json', { data: 'I\'m connected!' });
+        });
+    </script>
 </head>
 
 <body>
@@ -43,7 +54,8 @@
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="navbar-nav">
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('video_detection') }}">Video detection<span class="sr-only">(current)</span></a>
+                                <a class="nav-link" href="{{ url_for('video_detection') }}">Video detection<span
+                                        class="sr-only">(current)</span></a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('webcam_detection') }}">Webcam detection</a>
