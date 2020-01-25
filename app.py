@@ -31,7 +31,6 @@ def webcam_detection():
 
 @socketio.on('detection')
 def detection(data):
-    print('received message: ' + str(data))
     emit('detected', ['pute', 'tchoin'])
 
 
