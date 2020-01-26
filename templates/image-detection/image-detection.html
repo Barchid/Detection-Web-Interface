@@ -92,6 +92,7 @@
     // Retrieve dynamic HTML elements
     const canvas = document.getElementById('js-canvas');
     const ctx = canvas.getContext('2d');
+    ctx.globalAlpha = 1;
     const fileInput = document.getElementById('js-image');
     const networkSelect = document.getElementById('js-select-network');
     const results = document.getElementById('js-results-table');
@@ -124,20 +125,19 @@
         if (!imgData) return;
 
         // send to server through websocket
-        socket.emit('detection', {
-            algorithm: networkSelect.options[networkSelect.selectedIndex].value,
-            img: imgData
-        })
+        socket.emit('detection', imgData)
     }
 
     // Callback when the server answers with the predicted bounding boxes
     socket.on('detected', (boxes) => {
         ctx.beginPath();
         for (const box of boxes) {
+            ctx.strokeStyle = box.class in classes ? classes[box.class] : 'black';
+            ctx.fillStyle = box.class in classes ? classes[box.class] : 'black';
             ctx.rect(box.xmin, box.ymin, box.xmax - box.xmin, box.ymax - box.ymin);
             ctx.stroke();
-            ctx.font = "30px Arial";
-            ctx.fillText(box.class, box.xmin, box.ymin - 10);
+            ctx.font = "20px Arial";
+            ctx.fillText(box.class + ' - ' + box.score.toFixed(2), box.xmin, box.ymin + 15);
         }
     })
 </script>
