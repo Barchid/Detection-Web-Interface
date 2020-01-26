@@ -3,9 +3,143 @@
 {% block info_content%}
 {% endblock %}
 
+
 {% block network_choice %}
+<!-- network choice  -->
+<form id="js-form" onsubmit="startDetection(event)">
+    <div class="form-group">
+        <select class="form-control form-control-lg" id="js-select-network" required>
+            <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
+            <option value="mobilenet">Vanilla - Mobilenet</option>
+            <option value="repmet">Few-shot Learning - Repmet</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <input required type="file" class="form-control-file form-control-lg" id="js-image" accept="image./*"
+            placeholder="Image to detect">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Detection</button>
+</form>
 {% endblock %}
+
+
 {% block image_field %}
+<canvas id="js-canvas" class="border">
+
+</canvas>
 {% endblock %}
+
+
 {% block results_table %}
+<table class="table" id="js-results-table">
+    <thead>
+        <tr>
+            <th>
+                Features
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                Time
+            </td>
+            <td>
+                3.01s
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+
+    </tfoot>
+</table>
+
+
+<script>
+    // Define map between pasval VOC classes and related colors
+    // classes = ['background',
+    //            'aeroplane', 'bicycle', 'bird', 'boat',
+    //            'bottle', 'bus', 'car', 'cat',
+    //            'chair', 'cow', 'diningtable', 'dog',
+    //            'horse', 'motorbike', 'person', 'pottedplant',
+    //            'sheep', 'sofa', 'train', 'tvmonitor']
+    const classes = {
+        'background': '#000000',
+        'aeroplane': '#FF0000',
+        'bicycle': '#FF4400',
+        'bird': '#FF8900',
+        'boat': '#FFC900',
+        'bottle': '#F3FF00',
+        'bus': '#AFFF00',
+        'car': '#6BFF00',
+        'cat': '#26FF00',
+        'chair': '#00FF1A',
+        'cow': '#00FF5E',
+        'diningtable': '#00FFA2',
+        'dog': '#00FFE6',
+        'horse': '#00D5FF',
+        'motorbike': '#0095FF',
+        'person': '#0051FF',
+        'pottedplant': '#000DFF',
+        'sheep': '#3700FF',
+        'sofa': '#7700FF',
+        'train': '#BC00FF',
+        'tvmonitor': '#FF00FF'
+    };
+
+    // Retrieve dynamic HTML elements
+    const canvas = document.getElementById('js-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.globalAlpha = 1;
+    const fileInput = document.getElementById('js-image');
+    const networkSelect = document.getElementById('js-select-network');
+    const results = document.getElementById('js-results-table');
+    const form = document.getElementById('js-form');
+    const img = new Image(); // to load image from input
+    let imgData = null; // data image (base64)
+
+    // Callback on image input "onchange" event in order to change canvas preview with new uploaded image
+    fileInput.onchange = (e) => {
+        const files = e.target.files;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (evt) => {
+            if (evt.target.readyState == FileReader.DONE) {
+                imgData = evt.target.result; // keep base64 data
+                img.src = evt.target.result;
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                }
+            }
+        }
+    }
+
+    // Callback on submit to launch detection from server
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        if (!imgData) return;
+
+        // send to server through websocket
+        socket.emit('detection', imgData)
+    }
+
+    // Callback when the server answers with the predicted bounding boxes
+    socket.on('detected', (boxes) => {
+        ctx.beginPath();
+        for (const box of boxes) {
+            ctx.strokeStyle = box.class in classes ? classes[box.class] : 'black';
+            ctx.fillStyle = box.class in classes ? classes[box.class] : 'black';
+            ctx.rect(box.xmin, box.ymin, box.xmax - box.xmin, box.ymax - box.ymin);
+            ctx.stroke();
+            ctx.font = "20px Arial";
+            ctx.fillText(box.class + ' - ' + box.score.toFixed(2), box.xmin, box.ymin + 15);
+        }
+    })
+</script>
+
 {% endblock %}
