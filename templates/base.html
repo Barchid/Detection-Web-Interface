@@ -41,7 +41,7 @@
 
 <body>
     <div class="container-fluid">
-
+        {% block menu_header %}
         <!-- Menu -->
         <div class="row">
             <div class="col-md-12">
@@ -63,11 +63,15 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('image_detection') }}">Image detection</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('webcam_full') }}">Full webcam view</a>
+                            </li>
                         </ul>
                     </div>
                 </nav>
             </div>
         </div>
+        {% endblock %}
         {% block info_content %}
         {% endblock %}
         <div class="row">

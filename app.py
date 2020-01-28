@@ -26,5 +26,11 @@ def webcam_detection():
     return render_template('webcam-detection/webcam-detection.html')
 
 
+@app.route('/webcam-full')
+def webcam_full():
+    """Full detection"""
+    return render_template('webcam-detection/webcam-full.html')
+
+
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(debug=True)

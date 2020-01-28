@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block menu_header %}
+{% endblock %}
+
+{% block info_content%}
+<video id="js-video" autoplay style="display: none"></video>
+<canvas id="js-canvas" class="border">
+</canvas>
+{% endblock %}
+
+
+{% block network_choice %}
+{% endblock %}
+
+
+{% block image_field %}
+{% endblock %}
+
+
+{% block results_table %}
+<script>
+    const classes = {
+        'background': '#000000',
+        'aeroplane': '#FF0000',
+        'bicycle': '#FF4400',
+        'bird': '#FF8900',
+        'boat': '#FFC900',
+        'bottle': '#F3FF00',
+        'bus': '#AFFF00',
+        'car': '#6BFF00',
+        'cat': '#26FF00',
+        'chair': '#00FF1A',
+        'cow': '#00FF5E',
+        'diningtable': '#00FFA2',
+        'dog': '#00FFE6',
+        'horse': '#00D5FF',
+        'motorbike': '#0095FF',
+        'person': '#0051FF',
+        'pottedplant': '#000DFF',
+        'sheep': '#3700FF',
+        'sofa': '#7700FF',
+        'train': '#BC00FF',
+        'tvmonitor': '#FF00FF'
+    };
+
+    // Retrieve dynamic HTML elements
+    const video = document.getElementById('js-video');
+    const canvas = document.getElementById('js-canvas');
+    const ctx = canvas.getContext('2d');
+    let currentBoxes = [];
+    let isWebcamAccepted = false;
+    let isInDetection = false; // flag that indicates whether the socket is in detection
+
+    // Main loop
+    function loop() {
+        if (!isWebcamAccepted) return; // stop if nothing
+
+        // hidden canvas to encode frame of webcam in base64
+        const hiddenCanvas = document.createElement('canvas');
+        hiddenCanvas.width = document.documentElement.clientWidth;
+        hiddenCanvas.height = document.documentElement.clientHeight;
+        hiddenCanvas.getContext('2d').drawImage(video, 0, 0);
+
+        // reset canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw image
+        ctx.drawImage(video, 0, 0);
+
+        // draw current bounding boxes
+        for (const box of currentBoxes) {
+            ctx.beginPath();
+            ctx.strokeStyle = box.class in classes ? classes[box.class] : 'black';
+            ctx.fillStyle = box.class in classes ? classes[box.class] : 'black';
+            ctx.rect(box.xmin, box.ymin, box.xmax - box.xmin, box.ymax - box.ymin);
+            ctx.stroke();
+            ctx.font = "20px Arial";
+            ctx.fillText(box.class + ' - ' + box.score.toFixed(2), box.xmin, box.ymin + 15);
+        }
+
+        // Launch detection if there is no detection waiting
+        if (!isInDetection) {
+            socket.emit('detection', hiddenCanvas.toDataURL());
+            isInDetection = true;
+        }
+
+        requestAnimationFrame(loop);
+    }
+
+    // Callback when the server answers with the predicted bounding boxes.
+    socket.on('detected', (boxes) => {
+        currentBoxes = boxes;
+        isInDetection = false;
+    })
+
+    // request access to webcam
+    navigator.mediaDevices.getUserMedia({ video: { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight } }).then((stream) => {
+        canvas.width = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
+        video.srcObject = stream;
+        isWebcamAccepted = true;
+        loop(); // launch loop
+    });
+</script>
+
+{% endblock %}

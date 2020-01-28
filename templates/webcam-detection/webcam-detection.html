@@ -6,7 +6,7 @@
 
 {% block network_choice %}
 <!-- network choice  -->
-<form id="js-form" onsubmit="startDetection(event)">
+<form id="js-form">
     <div class="form-group">
         <select class="form-control form-control-lg" id="js-select-network" required>
             <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
@@ -14,17 +14,12 @@
             <option value="repmet">Few-shot Learning - Repmet</option>
         </select>
     </div>
-    <div class="form-group">
-        <input required type="file" class="form-control-file form-control-lg" id="js-image" accept="image./*"
-            placeholder="Image to detect">
-    </div>
-
-    <button type="submit" class="btn btn-primary">Detection</button>
 </form>
 {% endblock %}
 
 
 {% block image_field %}
+<video id="js-video" autoplay style="display: none"></video>
 <canvas id="js-canvas" class="border">
 
 </canvas>
@@ -58,13 +53,6 @@
 
 
 <script>
-    // Define map between pasval VOC classes and related colors
-    // classes = ['background',
-    //            'aeroplane', 'bicycle', 'bird', 'boat',
-    //            'bottle', 'bus', 'car', 'cat',
-    //            'chair', 'cow', 'diningtable', 'dog',
-    //            'horse', 'motorbike', 'person', 'pottedplant',
-    //            'sheep', 'sofa', 'train', 'tvmonitor']
     const classes = {
         'background': '#000000',
         'aeroplane': '#FF0000',
@@ -90,48 +78,53 @@
     };
 
     // Retrieve dynamic HTML elements
+    const video = document.getElementById('js-video');
     const canvas = document.getElementById('js-canvas');
     const ctx = canvas.getContext('2d');
-    ctx.globalAlpha = 1;
-    const fileInput = document.getElementById('js-image');
     const networkSelect = document.getElementById('js-select-network');
     const results = document.getElementById('js-results-table');
-    const form = document.getElementById('js-form');
-    const img = new Image(); // to load image from input
-    let imgData = null; // data image (base64)
+    let currentBoxes = [];
+    let isWebcamAccepted = false;
+    let isInDetection = false; // flag that indicates whether the socket is in detection
+    const img = new Image();
 
-    // Callback on image input "onchange" event in order to change canvas preview with new uploaded image
-    fileInput.onchange = (e) => {
-        const files = e.target.files;
-        const file = files[0];
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (evt) => {
-            if (evt.target.readyState == FileReader.DONE) {
-                imgData = evt.target.result; // keep base64 data
-                img.src = evt.target.result;
-                img.onload = () => {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                }
-            }
+    // hidden canvas to encode frame of webcam in base64
+    const hiddenCanvas = document.createElement('canvas');
+    hiddenCanvas.width = 600;
+    hiddenCanvas.height = 600;
+
+    // Main loop
+    function loop() {
+        if (!isWebcamAccepted) return; // stop if nothing
+        console.log('loop');
+
+        // IF [there is no detection waiting]
+        if (!isInDetection) {
+            console.log('new img');
+
+            // Keep current frame in memory
+            hiddenCanvas.getContext('2d').drawImage(video, 0, 0);
+            img.src = hiddenCanvas.toDataURL(); // keep the current image in memory (waiting for the detection)
+
+            // Launch detection
+            socket.emit('detection', hiddenCanvas.toDataURL());
+            isInDetection = true;
         }
+
+        requestAnimationFrame(loop);
     }
 
-    // Callback on submit to launch detection from server
-    form.onsubmit = (e) => {
-        e.preventDefault();
-        if (!imgData) return;
-
-        // send to server through websocket
-        socket.emit('detection', imgData)
-    }
-
-    // Callback when the server answers with the predicted bounding boxes
+    // Callback when the server answers with the predicted bounding boxes. It draws the new detection
     socket.on('detected', (boxes) => {
-        ctx.beginPath();
+        // reset canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw image
+        ctx.drawImage(img, 0, 0);
+
+        // draw current bounding boxes
         for (const box of boxes) {
+            ctx.beginPath();
             ctx.strokeStyle = box.class in classes ? classes[box.class] : 'black';
             ctx.fillStyle = box.class in classes ? classes[box.class] : 'black';
             ctx.rect(box.xmin, box.ymin, box.xmax - box.xmin, box.ymax - box.ymin);
@@ -139,7 +132,17 @@
             ctx.font = "20px Arial";
             ctx.fillText(box.class + ' - ' + box.score.toFixed(2), box.xmin, box.ymin + 15);
         }
+        isInDetection = false;
     })
+
+    // request access to webcam
+    navigator.mediaDevices.getUserMedia({ video: { width: 600, height: 600 } }).then((stream) => {
+        canvas.width = 600;
+        canvas.height = 600;
+        video.srcObject = stream;
+        isWebcamAccepted = true;
+        loop(); // launch loop
+    });
 </script>
 
 {% endblock %}
