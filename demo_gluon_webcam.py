@@ -6,7 +6,8 @@ from gluoncv.utils import try_import_cv2
 cv2 = try_import_cv2()
 
 # Load the model
-net = gcv.model_zoo.get_model('ssd_512_mobilenet1.0_voc', pretrained=True)
+net = gcv.model_zoo.get_model('ssd_512_mobilenet1.0_voc', pretrained=True, ctx=mx.gpu(0))
+
 # Compile the model for faster speed
 net.hybridize()
 
@@ -26,7 +27,7 @@ for i in range(NUM_FRAMES):
         frame, short=512, max_size=700)
 
     # Run frame through network
-    class_IDs, scores, bounding_boxes = net(rgb_nd)
+    class_IDs, scores, bounding_boxes = net(rgb_nd.as_in_context(mx.gpu(0)))
 
     # Display the result
     img = gcv.utils.viz.cv_plot_bbox(
