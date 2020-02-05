@@ -39,6 +39,7 @@ def base64_to_image(uri):
     """"read base64 encoded uri to image"""
     encoded_data = uri.split(',')[1]
     nparr = np.fromstring(base64.b64decode(encoded_data), np.uint8)
+    print('PUTE')
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     return img
 
@@ -85,13 +86,13 @@ def format_predictions(class_IDs, scores, bounding_boxes, classes, threshold=0.5
             'xmax': int(bbox[2]),
             'ymax': int(bbox[3]),
             'class': name,
-            'score': score
+            'score': score.item()
         })
 
     return results
 
 
-def predict_url(uri, model_id=SSD_ID):
+def predict_uri(uri, model_id=SSD_ID):
     """prediction base64 image"""
     # convert uri to image in mx.nd array
     frame = base64_to_image(uri)
@@ -101,16 +102,32 @@ def predict_url(uri, model_id=SSD_ID):
     x, frame = image_preprocessing(frame, model_id)
 
     # Run frame through network
+    start = time.time()
     class_IDs, scores, bounding_boxes = model_use(x, model_id)
-
-    img = gcv.utils.viz.cv_plot_bbox(
-        frame, bounding_boxes[0], scores[0], class_IDs[0], class_names=ssd.classes)
-    gcv.utils.viz.cv_plot_image(img)
-    cv2.waitKey()
+    end = time.time()
 
     class_IDs = class_IDs.asnumpy()
     scores = scores.asnumpy()
     bounding_boxes = bounding_boxes.asnumpy()
 
-    return format_predictions(class_IDs[0], scores[0], bounding_boxes[0], ssd.classes)
+    return {
+        'predictions': format_predictions(class_IDs[0], scores[0], bounding_boxes[0], ssd.classes),
+        'time': start - end
+    }
 
+
+# Web & websocket config
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, cors_allowed_origins='*')
+CORS(app)
+
+
+@socketio.on('detection')
+def detection(data):
+    result = predict_uri(data['uri'], data['modelId'])
+    emit('detected', result)
+
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)

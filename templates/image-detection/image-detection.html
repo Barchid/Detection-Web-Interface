@@ -125,13 +125,16 @@
         if (!imgData) return;
 
         // send to server through websocket
-        socket.emit('detection', imgData)
+        socket.emit('detection', {
+            uri: imgData,
+            modelId: 0
+        })
     }
 
     // Callback when the server answers with the predicted bounding boxes
-    socket.on('detected', (boxes) => {
+    socket.on('detected', (result) => {
         ctx.beginPath();
-        for (const box of boxes) {
+        for (const box of result.predictions) {
             ctx.strokeStyle = box.class in classes ? classes[box.class] : 'black';
             ctx.fillStyle = box.class in classes ? classes[box.class] : 'black';
             ctx.rect(box.xmin, box.ymin, box.xmax - box.xmin, box.ymax - box.ymin);
@@ -139,6 +142,7 @@
             ctx.font = "20px Arial";
             ctx.fillText(box.class + ' - ' + box.score.toFixed(2), box.xmin, box.ymin + 15);
         }
+        console.log(result.time)
     })
 </script>
 
