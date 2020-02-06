@@ -9,7 +9,9 @@
 <form id="js-form" onsubmit="startDetection(event)">
     <div class="form-group">
         <select class="form-control form-control-lg" id="js-select-network" required>
-            <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
+            <option value="frcnn">Faster R-CNN</option>
+            <option value="ssd" selected>SSD 512 - MobileNet</option>
+            <option value="yolo">YOLOv3 - MobileNet</option>
             <option value="mobilenet">Vanilla - Mobilenet</option>
             <option value="repmet">Few-shot Learning - Repmet</option>
         </select>
@@ -99,6 +101,12 @@
     const form = document.getElementById('js-form');
     const img = new Image(); // to load image from input
     let imgData = null; // data image (base64)
+    const network = networkSelect.options[networkSelect.selectedIndex].value; // the selected network
+
+    networkSelect.onchange = (ev) => {
+        // Update network selected
+        network = networkSelect.options[networkSelect.selectedIndex].value;
+    }
 
     // Callback on image input "onchange" event in order to change canvas preview with new uploaded image
     fileInput.onchange = (e) => {
@@ -124,11 +132,29 @@
         e.preventDefault();
         if (!imgData) return;
 
-        // send to server through websocket
-        socket.emit('detection', {
-            uri: imgData,
-            modelId: 0
-        })
+        // send to server through websocket (choose network to use)
+        switch (network) {
+            case 'ssd':
+                socket.emit('detection', {
+                    uri: imgData,
+                    modelId: 0
+                });
+                break;
+            case 'frcnn':
+                socket.emit('detection', {
+                    uri: imgData,
+                    modelId: 1
+                });
+                break;
+            case 'yolo':
+                socket.emit('detection', {
+                    uri: imgData,
+                    modelId: 2
+                });
+                break;
+            default:
+                console.log('Not implemented yet');
+        }
     }
 
     // Callback when the server answers with the predicted bounding boxes
