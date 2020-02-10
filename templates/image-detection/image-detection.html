@@ -12,8 +12,6 @@
             <option value="frcnn">Faster R-CNN</option>
             <option value="ssd" selected>SSD 512 - MobileNet</option>
             <option value="yolo">YOLOv3 - MobileNet</option>
-            <option value="mobilenet">Vanilla - Mobilenet</option>
-            <option value="repmet">Few-shot Learning - Repmet</option>
         </select>
     </div>
     <div class="form-group">
@@ -38,7 +36,7 @@
     <thead>
         <tr>
             <th>
-                Features
+                Analysis
             </th>
             <th></th>
         </tr>
@@ -48,8 +46,8 @@
             <td>
                 Time
             </td>
-            <td>
-                3.01s
+            <td id="js-time-result">
+                XXX
             </td>
         </tr>
     </tbody>
@@ -99,6 +97,7 @@
     const networkSelect = document.getElementById('js-select-network');
     const results = document.getElementById('js-results-table');
     const form = document.getElementById('js-form');
+    const timeResult = document.getElementById('js-time-result');
     const img = new Image(); // to load image from input
     let imgData = null; // data image (base64)
     const network = networkSelect.options[networkSelect.selectedIndex].value; // the selected network
@@ -106,6 +105,7 @@
     networkSelect.onchange = (ev) => {
         // Update network selected
         network = networkSelect.options[networkSelect.selectedIndex].value;
+        console.log(network);
     }
 
     // Callback on image input "onchange" event in order to change canvas preview with new uploaded image
@@ -168,7 +168,8 @@
             ctx.font = "20px Arial";
             ctx.fillText(box.class + ' - ' + box.score.toFixed(2), box.xmin, box.ymin + 15);
         }
-        console.log(result.time)
+        console.log(result)
+        timeResult.innerText = result.time.toFixed(4) + "s"
     })
 </script>
 

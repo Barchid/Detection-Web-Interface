@@ -112,7 +112,7 @@ def predict_uri(uri, model_id=SSD_ID):
 
     return {
         'predictions': format_predictions(class_IDs[0], scores[0], bounding_boxes[0], ssd.classes),
-        'time': start - end
+        'time': end - start
     }
 
 
