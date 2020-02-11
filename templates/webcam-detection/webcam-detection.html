@@ -9,9 +9,9 @@
 <form id="js-form">
     <div class="form-group">
         <select class="form-control form-control-lg" id="js-select-network" required>
-            <option value="feature-reweighting">Few-Shot Learning - Feature reweighting</option>
-            <option value="mobilenet">Vanilla - Mobilenet</option>
-            <option value="repmet">Few-shot Learning - Repmet</option>
+            <option value="frcnn">Faster R-CNN</option>
+            <option value="ssd" selected>SSD 512 - MobileNet</option>
+            <option value="yolo">YOLOv3 - MobileNet</option>
         </select>
     </div>
 </form>
@@ -87,11 +87,17 @@
     let isWebcamAccepted = false;
     let isInDetection = false; // flag that indicates whether the socket is in detection
     const img = new Image();
+    let network = networkSelect.options[networkSelect.selectedIndex].value; // the selected network
 
     // hidden canvas to encode frame of webcam in base64
     const hiddenCanvas = document.createElement('canvas');
     hiddenCanvas.width = 600;
     hiddenCanvas.height = 600;
+
+    networkSelect.onchange = (ev) => {
+        // Update network selected
+        network = networkSelect.options[networkSelect.selectedIndex].value;
+    }
 
     // Main loop
     function loop() {
@@ -107,7 +113,30 @@
             img.src = hiddenCanvas.toDataURL(); // keep the current image in memory (waiting for the detection)
 
             // Launch detection
-            socket.emit('detection', hiddenCanvas.toDataURL());
+            // send to server through websocket (choose network to use)
+            let imgData = hiddenCanvas.toDataURL();
+            switch (network) {
+                case 'ssd':
+                    socket.emit('detection', {
+                        uri: imgData,
+                        modelId: 0
+                    });
+                    break;
+                case 'frcnn':
+                    socket.emit('detection', {
+                        uri: imgData,
+                        modelId: 1
+                    });
+                    break;
+                case 'yolo':
+                    socket.emit('detection', {
+                        uri: imgData,
+                        modelId: 2
+                    });
+                    break;
+                default:
+                    console.log('Not implemented yet');
+            }
             isInDetection = true;
         }
 
@@ -115,7 +144,7 @@
     }
 
     // Callback when the server answers with the predicted bounding boxes. It draws the new detection
-    socket.on('detected', (boxes) => {
+    socket.on('detected', (result) => {
         // reset canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -123,7 +152,7 @@
         ctx.drawImage(img, 0, 0);
 
         // draw current bounding boxes
-        for (const box of boxes) {
+        for (const box of result.predictions) {
             ctx.beginPath();
             ctx.strokeStyle = box.class in classes ? classes[box.class] : 'black';
             ctx.fillStyle = box.class in classes ? classes[box.class] : 'black';
