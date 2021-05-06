@@ -15,7 +15,7 @@ dnspython==1.16.0
 entrypoints==0.3
 eventlet==0.25.1
 Flask==1.1.1
-Flask-Cors==3.0.8
+Flask-Cors==3.0.9
 Flask-SocketIO==4.2.1
 gast==0.2.2
 google-pasta==0.1.8
